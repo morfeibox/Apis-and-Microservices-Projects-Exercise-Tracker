@@ -17,32 +17,79 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
 
-
-// Set username Schema
 var Schema  = mongoose.Schema;
 
 var usernameShema = new Schema({
   usernam: String,
 });
 
+var exerciseShema = new Schema({
+  userid: {type: String, required: true},
+  description: {type: String, reuqired:true},
+  duration: Number,
+  date: Date 
+ })
+
+
+// Create New User Logic
+
 var userName = mongoose.model('userName', usernameShema);
+
+
+
 
 app.post("/api/exercise/new-user", (req, res, next)=>{
  
-  var user_name = req.body.username
+  const user_name = req.body.username
    
-  var query = new userName ({
+  var queryUserName = new userName ({
     username: user_name
   })
 
-  query.save((err)=>{
+  queryUserName.save((err)=>{
     if (err){
       res.send("ERROR when try to save the username")
     } 
   })
-  return res.json({"username":user_name, "_id":query._id});
+  
+  // set Midware for requiested user name and use it later
+  var requestedUser = function (req, res, next) {
+    req.equestedUser = queryUserName._id;
+    next()
+  }
+  app.use(requestedUser)
+ // 
+  return res.json({"username":user_name, "_id":queryUserName._id});
 
 })
+
+// Add exercises loggic
+var exercise = mongoose.model('excercise', exerciseShema);
+
+app.post("/api/exercise/add", (req, res, next)=>{
+
+    const queryExcecise = new exercise ({
+      userid: req.body.userid,
+      description: req.body.description,
+      duration: req.body.duration,
+      date: req.body.date
+    })
+
+  
+    queryExcecise.save((err)=>{
+      if (err) {
+        res.send("ERROR when try to save the Excercise!")
+      }
+    })
+    return res.json({
+    "username" : req.requestedUser,
+   "description" : queryExcecise.description,
+   "duration" : queryExcecise.duration,
+    "_id" : queryExcecise._id,
+     "date": queryExcecise.date
+    })
+})
+
 
 
 // Not found middleware
