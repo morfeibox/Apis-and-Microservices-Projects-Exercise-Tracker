@@ -1,14 +1,13 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
-
 const cors = require('cors')
+require('dotenv').config()
 
 const mongoose = require('mongoose')
 mongoose.connect(process.env.MLAB_URI || 'mongodb://localhost/Exercise-Tracker' )
 
 app.use(cors())
-
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 
@@ -19,8 +18,37 @@ app.get('/', (req, res) => {
 });
 
 
+// Set username Schema
+var Schema  = mongoose.Schema;
+
+var usernameShema = new Schema({
+  usernam: String,
+});
+
+var userName = mongoose.model('userName', usernameShema);
+
+app.post("/api/exercise/new-user", (req, res, next)=>{
+ 
+  var user_name = req.body.username
+   
+  var query = new userName ({
+    username: user_name
+  })
+
+  query.save((err)=>{
+    if (err){
+      res.send("ERROR when try to save the username")
+    } 
+  })
+  return res.json({"username":user_name, "_id":query._id});
+
+})
+
+
 // Not found middleware
 app.use((req, res, next) => {
+  // create application/json parser
+
   return next({status: 404, message: 'not found'})
 })
 
@@ -42,6 +70,31 @@ app.use((err, req, res, next) => {
   res.status(errCode).type('txt')
     .send(errMessage)
 })
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
