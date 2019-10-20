@@ -5,7 +5,7 @@ const cors = require('cors')
 require('dotenv').config()
 
 const mongoose = require('mongoose')
-mongoose.connect(process.env.MLAB_URI || 'mongodb://localhost/Exercise-Tracker' )
+mongoose.connect('mongodb://localhost/exercise-tracker')
 
 app.use(cors())
 app.use(bodyParser.urlencoded({extended: false}))
@@ -34,8 +34,6 @@ var exerciseShema = new Schema({
 // Create New User Logic
 
 var userName = mongoose.model('userName', usernameShema);
-
-
 
 
 app.post("/api/exercise/new-user", (req, res, next)=>{
@@ -90,6 +88,43 @@ app.post("/api/exercise/add", (req, res, next)=>{
     })
 })
 
+// GET users's exercise log
+app.get("/api/exercise/log?:userId?:from?:to?:limit", (req, res)=>{
+  
+  var userId = req.query.userId
+  var from = req.query.from
+  var to = req.query.to
+  var limit = req.query.limit
+  if (limit){
+    var limit = limit
+  } else {
+    var limit = 1000
+  }
+  
+  
+  if (userId){
+
+      var query = {userid : userId}
+   
+      // var query = {userid : userId,  date: {$gte: new Date(from), $lt: new Date(to)}}
+    
+  
+    exercise.aggregate([{$match:query}]).limit(limit).exec((err, result)=>{
+    
+      
+      exercise.count({query}, (err, count)=>{
+            res.json({"log" :result, "count": count});
+           
+          })
+      });
+
+   }
+
+// test call
+// /api/exercise/log?userId=5dac650820749914cc0b543f 
+
+})
+
 
 
 // Not found middleware
@@ -118,31 +153,9 @@ app.use((err, req, res, next) => {
     .send(errMessage)
 })
 
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
 })
+
+
+// http://localhost:3002/api/exercise/log?userId=5daaba481d00b60797a9f02e

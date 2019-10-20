@@ -7,6 +7,7 @@
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/grid.min.css" />
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/input.min.css" />
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/segment.min.css" />
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/message.min.css" />
       <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/components/form.min.js"></script>
    </head>
 
@@ -62,6 +63,14 @@
           </div>
         </form>
       </div>
+    </div>
+    <div class="ui message">
+      <div class="header">
+        GET users's exercise log: GET /api/exercise/log?{userId}[&from][&to][&limit]
+      </div>
+      <p> { } = required, [ ] = optional
+
+          from, to = dates (yyyy-mm-dd); limit = number </p>
     </div>
    </body>
 
