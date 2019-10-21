@@ -5,7 +5,7 @@ const cors = require('cors')
 require('dotenv').config()
 
 const mongoose = require('mongoose')
-mongoose.connect('mongodb://localhost/exercise-tracker')
+mongoose.connect('mongodb://localhost/exercise-tracker', {useUnifiedTopology: true,  useNewUrlParser: true })
 
 app.use(cors())
 app.use(bodyParser.urlencoded({extended: false}))
@@ -72,11 +72,11 @@ app.post("/api/exercise/new-user", (req, res, next)=>{
 })
 
 // Create exercises loggic
-var exercise = mongoose.model('excercise', exerciseShema);
+var Exercise = mongoose.model('Excercise', exerciseShema);
 
 app.post("/api/exercise/add", (req, res, next)=>{
 
-    const queryExcecise = new exercise ({
+    const queryExcecise = new Exercise ({
       userid: req.body.userid,
       description: req.body.description,
       duration: req.body.duration,
@@ -111,14 +111,14 @@ app.get("/api/exercise/log?:userId?:from?:to?:limit", (req, res)=>{
     var limit = 1000
   }
   
-  
+
   if (userId){
     if(!from && !to) {
       var query = {userid : userId}
 
-      exercise.aggregate([{$match:query}]).limit(limit).exec((err, result)=>{
+      Exercise.aggregate([{$match:query}]).limit(limit).exec((err, result)=>{
         
-        exercise.count(query, (err, count)=>{
+        Exercise.count(query, (err, count)=>{
               res.json({"log" :result, "count": count});  
         })
         
@@ -143,6 +143,14 @@ app.get("/api/exercise/log?:userId?:from?:to?:limit", (req, res)=>{
         }
     }
   }
+})
+
+// GET all users
+app.get("/api/exercise/users", (req, res, next)=>{
+  userName.find({}, function(err, data) {
+    res.send({data})
+  });
+
 })
 
 
