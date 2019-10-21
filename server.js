@@ -12,17 +12,29 @@ app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 
 
+// check if date is valid format
+function isValidDate(d){
+  var expression = /^\d{4}-\d{2}-\d{2}$/;
+  var regEx = new RegExp(expression);
+  if(d.match(regEx)){
+   return true
+  } else { return false}
+}
+
 app.use(express.static('public'))
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
 
+
 var Schema  = mongoose.Schema;
 
+// Create user Schema
 var usernameShema = new Schema({
   usernam: String,
 });
 
+// Create excercise Schema
 var exerciseShema = new Schema({
   userid: {type: String, required: true},
   description: {type: String, reuqired:true},
@@ -32,9 +44,7 @@ var exerciseShema = new Schema({
 
 
 // Create New User Logic
-
 var userName = mongoose.model('userName', usernameShema);
-
 
 app.post("/api/exercise/new-user", (req, res, next)=>{
  
@@ -61,7 +71,7 @@ app.post("/api/exercise/new-user", (req, res, next)=>{
 
 })
 
-// Add exercises loggic
+// Create exercises loggic
 var exercise = mongoose.model('excercise', exerciseShema);
 
 app.post("/api/exercise/add", (req, res, next)=>{
@@ -96,35 +106,44 @@ app.get("/api/exercise/log?:userId?:from?:to?:limit", (req, res)=>{
   var to = req.query.to
   var limit = req.query.limit
   if (limit){
-    var limit = limit
+    var limit = parseInt(limit)
   } else {
     var limit = 1000
   }
   
   
   if (userId){
-
+    if(!from && !to) {
       var query = {userid : userId}
-   
-      // var query = {userid : userId,  date: {$gte: new Date(from), $lt: new Date(to)}}
-    
-  
-    exercise.aggregate([{$match:query}]).limit(limit).exec((err, result)=>{
-    
-      
-      exercise.count({query}, (err, count)=>{
-            res.json({"log" :result, "count": count});
-           
-          })
+
+      exercise.aggregate([{$match:query}]).limit(limit).exec((err, result)=>{
+        
+        exercise.count(query, (err, count)=>{
+              res.json({"log" :result, "count": count});  
+        })
+        
       });
 
-   }
+    } else if (from && to) {
+      
+        if (isValidDate(from) && isValidDate(to)) {
+          
+          var query = {userid : userId,  date: {$gte: new Date(from), $lt: new Date(to)}}
 
-// test call
-// /api/exercise/log?userId=5dac650820749914cc0b543f 
+          exercise.aggregate([{$match:query}]).limit(limit).exec((err, result)=>{
+            
+            exercise.count(query, (err, count)=>{
+                  res.json({"log" :result, "count": count});  
+            })
 
+          }); 
+
+        } else {
+          res.send("Dates must be in yyyy-mm-dd format!")
+        }
+    }
+  }
 })
-
 
 
 // Not found middleware
@@ -156,6 +175,3 @@ app.use((err, req, res, next) => {
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
 })
-
-
-// http://localhost:3002/api/exercise/log?userId=5daaba481d00b60797a9f02e
